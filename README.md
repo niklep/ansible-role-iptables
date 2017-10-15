@@ -4,7 +4,7 @@ Role to create basic firewall rules
 
 ## Role variables
 
-```
+```yml
 # Set to True if want the same rules to be applied on ipv6
 ip6tables: False
 # File where rules are saved
@@ -39,7 +39,7 @@ iptables:
     - name: INPUT
       policy: ACCEPT
       rules:
-			  # Accept connection to these tcp ports
+        # Accept connection to these tcp ports
         tcp_dport_accept:
           - 80
           - 443
@@ -47,12 +47,12 @@ iptables:
           - 587 #smtps
           - 143 #imap
           - 993 # imaps
-			  # Accept connection to these udp ports
+        # Accept connection to these udp ports
         udp_sport_dport_accept:
           - sport: 5353
             dport: 5353
       pipes_to:
-			  # Pipe packates from source to custom network
+        # Pipe packates from source to custom network
         - chain: CUSTOM_NETWORK
           proto: tcp
           source: 192.168.0.0/24
