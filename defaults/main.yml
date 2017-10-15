@@ -1,0 +1,17 @@
+---
+ip6tables: False
+iptables_restore_file: /etc/iptables.up.rules
+ip6tables_restore_file: /etc/ip6tables.up.rules
+iptables_pre_up_file: /etc/network/if-pre-up.d/iptables
+ip6tables_pre_up_file: /etc/network/if-pre-up.d/ip6tables
+iptables:
+  ssh_port: 22
+  iptables_chain:
+    - name: INPUT
+      policy: ACCEPT
+    - name: FORWARD
+      policy: ACCEPT
+    - name: OUTPUT
+      policy: ACCEPT
+
+# vi:sw=2:tabstop=2

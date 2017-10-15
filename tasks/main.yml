@@ -1,0 +1,28 @@
+---
+
+- name: "Compile iptables rules"
+  template:
+    src: "iptables.rules.j2"
+    dest: "{{ iptables_restore_file }}"
+  notify:
+    - "reload firewall"
+  tags: firewall
+
+- name: "Compile ip6tables rules"
+  template:
+    src: "ip6tables.rules.j2"
+    dest: "{{ ip6tables_restore_file }}"
+  notify:
+    - "reload ip6 firewall"
+  when: ip6tables == True
+  tags: firewall
+
+- name: "Create startup file"
+  template:
+    src: "iptables-pre-up.j2"
+    dest: "{{ iptables_pre_up_file }}"
+    mode: "u=rwx,g=rx,o=rx"
+    owner: "root"
+    group: "root"
+
+# vi:sw=2:tabstop=2
