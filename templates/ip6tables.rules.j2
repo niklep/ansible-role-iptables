@@ -46,9 +46,15 @@
 			{% endif -%}
 		{% endif -%}
 
+		{% if 'pipes_to' in chain -%}
+{% for pipe in chain.pipes_to -%}
+-A {{ chain.name }} -p {{ pipe.proto }} -m {{ pipe.proto }} -s {{ pipe.source }} -j {{ pipe.chain }}
+{% endfor -%}
+
 		{% if 'jump' in chain -%}
 -A {{ chain.name }} -j {{ chain.jump }}
 		{%- endif -%}
+
 	{% endfor -%}
 {%- endif %}
 -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT

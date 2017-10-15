@@ -20,6 +20,11 @@ iptables:
         udp_sport_dport_accept:
           - sport: 5353
             dport: 5353
+      pipes_to:
+        - chain: CUSTOM_NETWORK
+          proto: tcp
+          source: 192.168.0.0/24
+
     - name: FORWARD
       policy: ACCEPT
     - name: OUTPUT
@@ -28,10 +33,6 @@ iptables:
     - name: CUSTOM_NETWORK
       policy: '-'
       jump: DROP
-      pipes:
-        - chain: INPUT
-          proto: tcp
-          source: 192.168.0.0/24
 
       rules:
         tcp_dport_accept:
