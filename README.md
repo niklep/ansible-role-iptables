@@ -74,5 +74,5 @@ iptables:
           - 137
           - 138
 
-# vi:sw=2:tabstop=2
+# vi:sw=2:tabstop=2:et:
 ```

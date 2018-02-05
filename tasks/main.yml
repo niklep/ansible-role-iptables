@@ -5,7 +5,7 @@
     src: "iptables.rules.j2"
     dest: "{{ iptables_restore_file }}"
   notify:
-    - "reload firewall"
+    - reload firewall
   tags: firewall
 
 - name: "Compile ip6tables rules"
@@ -13,7 +13,7 @@
     src: "ip6tables.rules.j2"
     dest: "{{ ip6tables_restore_file }}"
   notify:
-    - "reload ip6 firewall"
+    - reload ip6 firewall
   when: ip6tables == True
   tags: firewall
 
