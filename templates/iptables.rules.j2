@@ -78,6 +78,7 @@ COMMIT
 
 # Allow icmp
 -A INPUT -p icmp -j ACCEPT
+-A OUTPUT -p icmp -j ACCEPT
 
 # log iptables denied calls (access via 'dmesg' command)
 -A INPUT -m limit --limit 5/min -j LOG --log-prefix "iptables denied: " --log-level 7
@@ -87,6 +88,7 @@ COMMIT
 -A FORWARD -i {{ iptables.tunnel.device }} -o {{ iptables.tunnel.tun_device }} -m state --state ESTABLISHED,RELATED -j ACCEPT
 -A FORWARD -s {{ iptables.tunnel.network }} -o {{ iptables.tunnel.device }} -j ACCEPT
 {% endif %}
+
 
 # Reject all other inbound - default deny unless explicitly allowed policy:
 -A INPUT -j REJECT
