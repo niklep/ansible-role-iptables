@@ -74,6 +74,7 @@ COMMIT
 
 -A INPUT -p ipv6-icmp -j ACCEPT
 -A OUTPUT -p ipv6-icmp -j ACCEPT
+-A INPUT -p igmp -j ACCEPT
 -A OUTPUT -p igmp -j ACCEPT
 -A INPUT -m limit --limit 5/min -j LOG --log-prefix "ip6tables denied: " --log-level 7
 
