@@ -20,33 +20,28 @@ COMMIT
 -F OUTPUT
 
 # Allows all loopback (lo0) traffic and drop all traffic to 127/8 that doesn't use lo0
--A INPUT -i lo -j ACCEPT
--A OUTPUT -o lo -j ACCEPT
 -A INPUT ! -i lo -d 127.0.0.0/8 -j REJECT
-
-# Accepts all established inbound connections
--A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-
-{% if 'ssh_port' in iptables -%}
-# Allows SSH connections
-# The --dport number is the same as in /etc/ssh/sshd_config
--A INPUT -p tcp -m state --state NEW --dport {{ iptables.ssh_port }} -j ACCEPT
-{% endif %}
 
 {% if iptables.iptables_chain -%}
 	{% for chain in iptables.iptables_chain -%}
 
-		{% if 'pipes' in chain -%}
-{% for pipe in chain.pipes -%}
--A {{ pipe.chain }} -p {{ pipe.proto }} -m {{ pipe.proto }} -s {{ pipe.source }} -j {{ chain.name }}
+		{% if 'pipes_to' in chain and 'ipv4' in chain.pipes_to -%}
+{% for pipe in chain.pipes_to.ipv4 -%}
+-A {{ chain.name }} -p {{ pipe.proto }} -m {{ pipe.proto }} -s {{ pipe.source }} -j {{ pipe.chain }}
 {% endfor -%}
 		{% endif -%}
 
 		{% if 'rules' in chain -%}
+
 			{% if 'tcp_dport_accept' in chain.rules -%}
 {% for port in chain.rules.tcp_dport_accept -%}
 -A {{ chain.name }} -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor -%}
+			{% endif -%}
+
+			{% if 'tcp_dhost_dport_accept' in chain.rules -%}
+{% for port in chain.rules.tcp_dhost_dport_accept -%}
+-A {{ chain.name }} -p tcp -m tcp -d {{ port.dhost }} --dport {{ port.dport }} -j ACCEPT
 {% endfor -%}
 			{% endif -%}
 
@@ -61,28 +56,39 @@ COMMIT
 -A {{ chain.name }} -p udp --sport {{ port.sport }} --dport {{ port.dport }} -j ACCEPT
 {% endfor -%}
 			{% endif -%}
+
+			{% if 'rule' in chain.rules -%}
+				{% for rule in chain.rules.rule -%}
+{% if (not 'source' in rule or (rule.source | ipv4)) and (not 'dest' in rule or (rule.dest | ipv4)) and (not 'ipv6' in rule or not rule.ipv6)  -%}
+-A {{ chain.name }}
+{%- if 'proto' in rule %} -p {{ rule.proto }}{% endif %}
+{%- if 'module' in rule %} -m {{ rule.module }}{% endif %}
+{%- if 'iniface' in rule %} -i {{ rule.iniface }}{% endif %}
+{%- if 'outiface' in rule %} -o {{ rule.outiface }}{% endif %}
+{%- if 'sport' in rule %} --sport {{ rule.sport }}{% endif %}
+{%- if 'dport' in rule %} --dport {{ rule.dport }}{% endif %}
+{%- if 'sports' in rule %} --sports {{ rule.sports | join(',') }}{% endif %}
+{%- if 'dports' in rule %} --dports {{ rule.dports | join(',') }}{% endif %}
+{%- if 'state' in rule %} --state {{ rule.state }}{% endif %}
+{%- if 'source' in rule %} -s {{ rule.source }}{% endif %}
+{%- if 'dest' in rule %} -d {{ rule.dest }}{% endif %}
+{%- if 'limit' in rule %} --limit {{ rule.limit }}{% endif %}
+{%- if 'jump' in rule%} -j {{ rule.jump }}{% endif %}
+{%- if 'logprefix' in rule %} --log-prefix "{{ rule.logprefix }}"{% endif %}
+{%- if 'loglevel' in rule %} --log-level {{ rule.loglevel }}{% endif %}
+
+{% endif -%}
+				{% endfor -%}
+			{% endif -%}
+
 		{% endif -%}
 
-		{% if 'pipes_to' in chain -%}
-{% for pipe in chain.pipes_to -%}
--A {{ chain.name }} -p {{ pipe.proto }} -m {{ pipe.proto }} -s {{ pipe.source }} -j {{ pipe.chain }}
-{% endfor -%}
-		{% endif -%}
-
-		{% if 'jump' in chain -%}
+{% if 'jump' in chain -%}
 -A {{ chain.name }} -j {{ chain.jump }}
-		{%- endif -%}
+{% endif -%}
 
 	{% endfor -%}
-{%- endif %}
-
-# Allow icmp
--A INPUT -p icmp -j ACCEPT
--A OUTPUT -p icmp -j ACCEPT
-
-# log iptables denied calls (access via 'dmesg' command)
--A INPUT -m limit --limit 5/min -j LOG --log-prefix "iptables denied: " --log-level 7
-
+{%- endif -%}
 
 {% if 'tunnel' in iptables %}
 -A FORWARD -i {{ iptables.tunnel.device }} -o {{ iptables.tunnel.tun_device }} -m state --state ESTABLISHED,RELATED -j ACCEPT

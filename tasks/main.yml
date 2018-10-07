@@ -1,11 +1,21 @@
 ---
+- name: "Install iptables"
+  apt:
+    name: iptables
+    state: present
+
+- name: Sysctl ipv4 ip forward
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "{{ iptables_ipv4_ip_forward }}"
+    state: present
 
 - name: "Compile iptables rules"
   template:
     src: "iptables.rules.j2"
     dest: "{{ iptables_restore_file }}"
   notify:
-    - reload firewall
+    - reload iptables
   tags: firewall
 
 - name: "Compile ip6tables rules"
@@ -13,7 +23,7 @@
     src: "ip6tables.rules.j2"
     dest: "{{ ip6tables_restore_file }}"
   notify:
-    - reload ip6 firewall
+    - reload ip6tables
   when: ip6tables == True
   tags: firewall
 

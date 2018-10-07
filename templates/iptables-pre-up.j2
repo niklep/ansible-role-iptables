@@ -1,2 +1,6 @@
 #!/bin/sh
 /sbin/iptables-restore < {{ iptables_restore_file }}
+
+if [ -e "{{ ip6tables_restore_file }}" ];then
+	/sbin/ip6tables-restore < {{ ip6tables_restore_file }}
+fi

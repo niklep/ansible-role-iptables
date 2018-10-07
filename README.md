@@ -17,7 +17,6 @@ iptables_pre_up_file: /etc/network/if-pre-up.d/iptables
 ip6tables_pre_up_file: /etc/network/if-pre-up.d/ip6tables
 # iptables rules
 iptables:
-  ssh_port: 22
   iptables_chain:
     - name: INPUT
       policy: ACCEPT
@@ -34,11 +33,30 @@ iptables:
 
 ip6tables: True
 iptables:
-  ssh_port: 2234
   iptables_chain:
     - name: INPUT
       policy: ACCEPT
       rules:
+        rule:
+          - iniface: lo
+            jump: ACCEPT
+          - proto: igmp
+            jump: ACCEPT
+          - proto: icmp
+            jump: ACCEPT
+            ipv4: true
+          - proto: ipv6-icmp
+            jump: ACCEPT
+            ipv6: true
+          - module: state
+            state: 'ESTABLISHED,RELATED'
+            jump: ACCEPT
+          # enable ssh on port 22
+          - proto: tcp
+            module: state
+            state: NEW
+            dport: 22
+            jump: ACCEPT
         # Accept connection to these tcp ports
         tcp_dport_accept:
           - 80
@@ -60,7 +78,26 @@ iptables:
     - name: FORWARD
       policy: ACCEPT
     - name: OUTPUT
-      policy: ACCEPT
+      policy: DROP
+      rules:
+        rule:
+          - outiface: lo
+            jump: ACCEPT
+
+          - proto: igmp
+            jump: ACCEPT
+
+          - proto: icmp
+            jump: ACCEPT
+            ipv4: true
+
+          - proto: ipv6-icmp
+            jump: ACCEPT
+            ipv6: true
+
+          - module: state
+            state: 'ESTABLISHED,RELATED'
+            jump: ACCEPT
 
     - name: CUSTOM_NETWORK
       policy: '-'

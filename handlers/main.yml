@@ -1,10 +1,8 @@
 ---
 
-- name: Reload iptables
+- name: reload iptables
   raw: /sbin/iptables-restore < {{ iptables_restore_file }}
-  listen: "reload firewall"
 
 
-- name: Reload ip6tables
+- name: reload ip6tables
   raw: /sbin/ip6tables-restore < {{ ip6tables_restore_file }}
-  listen: "reload ip6 firewall"
