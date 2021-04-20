@@ -1,4 +1,13 @@
 #!/bin/sh
+
+# For debug of duplicating iptables rules after reboot
+# https://bugs.launchpad.net/ubuntu/+source/ifupdown/+bug/1126560
+#NETIF="ens192"
+#if [ "$IFACE" != $NETIF ]; then
+#  exit 0
+#fi
+#echo "$PPID: `ps -ocommand= -p $PPID`" > /tmp/loading_iptables.`date +%F_%H:%M:%S.%N`
+
 /sbin/iptables-restore < {{ iptables_restore_file }}
 
 if [ -e "{{ ip6tables_restore_file }}" ];then

@@ -1,38 +1,92 @@
 ---
-- name: "Install iptables"
-  apt:
-    name: iptables
+- name: Install debian packages
+  ansible.builtin.apt:
+    pkg:
+    - iptables
+    - rsyslog
+    - logrotate
     state: present
+    update_cache: yes
+  ignore_errors: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install RedHat packages
+  ansible.builtin.yum:
+    name:
+    - iptables
+    - rsyslog
+    - logrotate
+    state: present
+    update_cache: yes
+  ignore_errors: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Create iptables log directory
+  ansible.builtin.file:
+    path: /var/log/iptables
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Delete old iptables log files
+  ansible.builtin.shell: rm -rf /var/log/iptables.log*
+
+- name: Copy rsyslog config file
+  ansible.builtin.copy:
+    src: files/10-iptables.conf
+    dest: /etc/rsyslog.d/
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart rsyslog
 
 - name: Sysctl ipv4 ip forward
-  sysctl:
+  ansible.posix.sysctl:
     name: net.ipv4.ip_forward
     value: "{{ iptables_ipv4_ip_forward }}"
     state: present
 
-- name: "Compile iptables rules"
+- name: Compile iptables rules
   template:
     src: "iptables.rules.j2"
     dest: "{{ iptables_restore_file }}"
   notify:
     - reload iptables
+  when:
+    - manual_config_exists == False
   tags: firewall
 
-- name: "Compile ip6tables rules"
+- name: Compile ip6tables rules
   template:
     src: "ip6tables.rules.j2"
     dest: "{{ ip6tables_restore_file }}"
   notify:
     - reload ip6tables
-  when: ip6tables == True
+  when:
+    - ip6tables == True
+    - manual_config_exists == False
   tags: firewall
 
-- name: "Create startup file"
+- name: Create startup file Debian
   template:
     src: "iptables-pre-up.j2"
-    dest: "{{ iptables_pre_up_file }}"
+    dest: "{{ iptables_pre_up_file_debian }}"
     mode: "u=rwx,g=rx,o=rx"
     owner: "root"
     group: "root"
+  when:
+    - ansible_os_family == "Debian"
 
+- name: Create startup file RedHat
+  template:
+    src: "iptables-pre-up.j2"
+    dest: "{{ iptables_pre_up_file_redhat }}"
+    mode: "u=rwx,g=rx,o=rx"
+    owner: "root"
+    group: "root"
+  when:
+    - ansible_os_family == "RedHat"
+    
 # vi:sw=2:tabstop=2

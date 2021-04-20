@@ -3,8 +3,13 @@ ip6tables: False
 iptables_restore_file: /etc/iptables.up.rules
 iptables_ipv4_ip_forward: 0
 ip6tables_restore_file: /etc/ip6tables.up.rules
-iptables_pre_up_file: /etc/network/if-pre-up.d/iptables
-ip6tables_pre_up_file: /etc/network/if-pre-up.d/ip6tables
+iptables_pre_up_file_debian: /etc/network/if-pre-up.d/iptables
+ip6tables_pre_up_file_debian: /etc/network/if-pre-up.d/ip6tables
+iptables_pre_up_file_redhat: /sbin/ifup-local
+# /etc/iptables.up.rules already exists on server by default.
+manual_config_exists: True
+manual_config_exists: True
+
 iptables:
   iptables_chain:
     - name: INPUT
